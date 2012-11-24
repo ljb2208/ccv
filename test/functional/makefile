@@ -1,6 +1,8 @@
-CC = `cat ../../lib/.CC`# -fprofile-arcs -ftest-coverage
-LDFLAGS = -L"../../lib" -lccv `cat ../../lib/.LN`
-CFLAGS = -O3 -msse2 -Wall -I"../../lib" -I"../" `cat ../../lib/.DEF`
+include ../../lib/config.mk
+
+#CC +=# -fprofile-arcs -ftest-coverage
+LDFLAGS := -L"../../lib" -lccv $(LDFLAGS)
+CFLAGS := -O3 -Wall -I"../../lib" -I"../" $(CFLAGS)
 TARGETS = algebra.tests util.tests numeric.tests basic.tests memory.tests io.tests transform.tests
 
 test: all
@@ -9,7 +11,7 @@ test: all
 all: $(TARGETS)
 
 clean:
-	${MAKE} clean -C ../../lib ; rm *.o $(TARGETS)
+	${MAKE} clean -C ../../lib ; rm -f *.o $(TARGETS)
 
 %.tests: %.tests.o libccv.a
 	@echo "$(CC) -o $@ $< $(LDFLAGS)"

@@ -7,7 +7,7 @@ void ccv_hog(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int b_type, int sbin
 	int rows = a->rows / size;
 	int cols = a->cols / size;
 	b_type = (CCV_GET_DATA_TYPE(b_type) == CCV_64F) ? CCV_64F | (4 + sbin * 3) : CCV_32F | (4 + sbin * 3);
-	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_format(64, "ccv_hog(%d,%d)", sbin, size), a->sig, 0);
+	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_format(64, "ccv_hog(%d,%d)", sbin, size), a->sig, CCV_EOF_SIGN);
 	ccv_dense_matrix_t* db = *b = ccv_dense_matrix_renew(*b, rows, cols, CCV_64F | CCV_32F | (4 + sbin * 3), b_type, sig);
 	ccv_object_return_if_cached(, db);
 	ccv_dense_matrix_t* ag = 0;
@@ -196,7 +196,7 @@ void ccv_hog(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int b_type, int sbin
 void ccv_canny(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int type, int size, double low_thresh, double high_thresh)
 {
 	assert(CCV_GET_CHANNEL(a->type) == CCV_C1);
-	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_format(64, "ccv_canny(%d,%la,%la)", size, low_thresh, high_thresh), a->sig, 0);
+	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_format(64, "ccv_canny(%d,%la,%la)", size, low_thresh, high_thresh), a->sig, CCV_EOF_SIGN);
 	type = (type == 0) ? CCV_8U | CCV_C1 : CCV_GET_DATA_TYPE(type) | CCV_C1;
 	ccv_dense_matrix_t* db = *b = ccv_dense_matrix_renew(*b, a->rows, a->cols, CCV_C1 | CCV_ALL_DATA_TYPE, type, sig);
 	ccv_object_return_if_cached(, db);
@@ -345,7 +345,7 @@ void ccv_canny(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int type, int size
 void ccv_close_outline(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int type)
 {
 	assert((CCV_GET_CHANNEL(a->type) == CCV_C1) && ((a->type & CCV_8U) || (a->type & CCV_32S) || (a->type & CCV_64S)));
-	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_literal("ccv_close_outline"), a->sig, 0);
+	ccv_declare_derived_signature(sig, a->sig != 0, ccv_sign_with_literal("ccv_close_outline"), a->sig, CCV_EOF_SIGN);
 	type = ((type == 0) || (type & CCV_32F) || (type & CCV_64F)) ? CCV_GET_DATA_TYPE(a->type) | CCV_C1 : CCV_GET_DATA_TYPE(type) | CCV_C1;
 	ccv_dense_matrix_t* db = *b = ccv_dense_matrix_renew(*b, a->rows, a->cols, CCV_C1 | CCV_ALL_DATA_TYPE, type, sig);
 	ccv_object_return_if_cached(, db);
@@ -442,7 +442,7 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 	assert(CCV_GET_DATA_TYPE(a->type) == CCV_8U);
 	assert(point_a->rnum > 0);
 	level = ccv_clamp(level + 1, 1, (int)(log((double)ccv_min(a->rows, a->cols) / ccv_max(win_size.width * 2, win_size.height * 2)) / log(2.0) + 0.5));
-	ccv_declare_derived_signature(sig, a->sig != 0 && b->sig != 0 && point_a->sig != 0, ccv_sign_with_format(128, "ccv_optical_flow_lucas_kanade(%d,%d,%d,%la)", win_size.width, win_size.height, level, min_eigen), a->sig, b->sig, point_a->sig, 0);
+	ccv_declare_derived_signature(sig, a->sig != 0 && b->sig != 0 && point_a->sig != 0, ccv_sign_with_format(128, "ccv_optical_flow_lucas_kanade(%d,%d,%d,%la)", win_size.width, win_size.height, level, min_eigen), a->sig, b->sig, point_a->sig, CCV_EOF_SIGN);
 	ccv_array_t* seq = *point_b = ccv_array_new(sizeof(ccv_decimal_point_with_status_t), point_a->rnum, sig);
 	ccv_object_return_if_cached(, seq);
 	seq->rnum = point_a->rnum;
@@ -469,8 +469,8 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 	int* widx = (int*)alloca(sizeof(int) * win_size.width * win_size.height);
 	int* widy = (int*)alloca(sizeof(int) * win_size.width * win_size.height);
 	ccv_decimal_point_t half_win = ccv_decimal_point((win_size.width - 1) * 0.5f, (win_size.height - 1) * 0.5f);
-	const int W_BITS14 = 14, W_BITS4 = 4, W_BITS6 = 6;
-	const float FLT_SCALE = 1.0f / (1 << 20);
+	const int W_BITS14 = 14, W_BITS7 = 7, W_BITS9 = 9;
+	const float FLT_SCALE = 1.0f / (1 << 25);
 	// clean up status to 1
 	for (i = 0; i < point_a->rnum; i++)
 	{
@@ -503,8 +503,8 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 			prev_point.x -= half_win.x;
 			prev_point.y -= half_win.y;
 			ccv_point_t iprev_point = ccv_point((int)prev_point.x, (int)prev_point.y);
-			if (iprev_point.x < 0 || iprev_point.x >= a->cols - win_size.width ||
-				iprev_point.y < 0 || iprev_point.y >= a->rows - win_size.height)
+			if (iprev_point.x < 0 || iprev_point.x >= a->cols - win_size.width - 1 ||
+				iprev_point.y < 0 || iprev_point.y >= a->rows - win_size.height - 1)
 			{
 				if (t == 0)
 					point_with_status->status = 0;
@@ -527,10 +527,10 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 			{
 				for (x = 0; x < win_size.width; x++)
 				{
-					wi_ptr[x] = ccv_descale(a_ptr[x] * iw00 + a_ptr[x + 1] * iw01 + a_ptr[x + a->step] * iw10 + a_ptr[x + a->step + 1] * iw11, W_BITS4);
+					wi_ptr[x] = ccv_descale(a_ptr[x] * iw00 + a_ptr[x + 1] * iw01 + a_ptr[x + a->step] * iw10 + a_ptr[x + a->step + 1] * iw11, W_BITS7);
 					// because we use 3x3 sobel, which scaled derivative up by 4
-					widx_ptr[x] = ccv_descale(adx_ptr[x] * iw00 + adx_ptr[x + 1] * iw01 + adx_ptr[x + adx->cols] * iw10 + adx_ptr[x + adx->cols + 1] * iw11, W_BITS6);
-					widy_ptr[x] = ccv_descale(ady_ptr[x] * iw00 + ady_ptr[x + 1] * iw01 + ady_ptr[x + ady->cols] + iw10 + ady_ptr[x + ady->cols + 1] * iw11, W_BITS6);
+					widx_ptr[x] = ccv_descale(adx_ptr[x] * iw00 + adx_ptr[x + 1] * iw01 + adx_ptr[x + adx->cols] * iw10 + adx_ptr[x + adx->cols + 1] * iw11, W_BITS9);
+					widy_ptr[x] = ccv_descale(ady_ptr[x] * iw00 + ady_ptr[x + 1] * iw01 + ady_ptr[x + ady->cols] + iw10 + ady_ptr[x + ady->cols + 1] * iw11, W_BITS9);
 					a11 += (float)(widx_ptr[x] * widx_ptr[x]);
 					a12 += (float)(widx_ptr[x] * widy_ptr[x]);
 					a22 += (float)(widy_ptr[x] * widy_ptr[x]);
@@ -560,8 +560,8 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 			for (j = 0; j < LK_MAX_ITER; j++)
 			{
 				ccv_point_t inext_point = ccv_point((int)next_point.x, (int)next_point.y);
-				if (inext_point.x < 0 || inext_point.x >= a->cols - win_size.width ||
-					inext_point.y < 0 || inext_point.y >= a->rows - win_size.height)
+				if (inext_point.x < 0 || inext_point.x >= a->cols - win_size.width - 1 ||
+					inext_point.y < 0 || inext_point.y >= a->rows - win_size.height - 1)
 					break;
 				float xd = next_point.x - inext_point.x;
 				float yd = next_point.y - inext_point.y;
@@ -578,7 +578,7 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 				{
 					for (x = 0; x < win_size.width; x++)
 					{
-						int diff = ccv_descale(b_ptr[x] * iw00 + b_ptr[x + 1] * iw01 + b_ptr[x + b->step] * iw10 + b_ptr[x + b->step + 1] * iw11, W_BITS4) - wi_ptr[x];
+						int diff = ccv_descale(b_ptr[x] * iw00 + b_ptr[x + 1] * iw01 + b_ptr[x + b->step] * iw10 + b_ptr[x + b->step + 1] * iw11, W_BITS7) - wi_ptr[x];
 						b1 += (float)(diff * widx_ptr[x]);
 						b2 += (float)(diff * widy_ptr[x]);
 					}
@@ -603,8 +603,8 @@ void ccv_optical_flow_lucas_kanade(ccv_dense_matrix_t* a, ccv_dense_matrix_t* b,
 				prev_delta = delta;
 			}
 			ccv_point_t inext_point = ccv_point((int)next_point.x, (int)next_point.y);
-			if (inext_point.x < 0 || inext_point.x >= a->cols - win_size.width ||
-				inext_point.y < 0 || inext_point.y >= a->rows - win_size.height)
+			if (inext_point.x < 0 || inext_point.x >= a->cols - win_size.width - 1 ||
+				inext_point.y < 0 || inext_point.y >= a->rows - win_size.height - 1)
 				point_with_status->status = 0;
 			else {
 				point_with_status->point.x = next_point.x + half_win.x;

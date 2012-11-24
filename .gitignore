@@ -28,6 +28,9 @@ bin/*.diff
 bin/data/*
 data/*
 tool/*
+lib/.*
 bin/.*
 .metadata
 samples/.*
+config.mk
+build
