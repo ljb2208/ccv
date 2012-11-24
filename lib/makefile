@@ -1,5 +1,5 @@
 CC = `cat .CC`# -faddress-sanitizer -fno-omit-frame-pointer
-CFLAGS = -O3 -ffast-math -Wall `cat .DEF`# -fprofile-arcs -ftest-coverage
+CFLAGS = -O3 -std=c99 -ffast-math -Wall `cat .DEF`# -fprofile-arcs -ftest-coverage
 
 config:
 	@./configure

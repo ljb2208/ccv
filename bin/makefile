@@ -1,5 +1,5 @@
 CC = `cat ../lib/.CC`# -faddress-sanitizer -fno-omit-frame-pointer
-LDFLAGS = -L"../lib" -lccv `cat ../lib/.LN`
+LDFLAGS = -L"../lib" -lccv -lgsl -lgslcblas `cat ../lib/.LN`
 CFLAGS = -O3 -Wall -I"../lib" `cat ../lib/.DEF`
 
 TARGETS = bbffmt msermatch siftmatch bbfcreate bbfdetect swtcreate swtdetect dpmcreate dpmdetect convert tld

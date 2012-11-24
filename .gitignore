@@ -28,3 +28,6 @@ bin/*.diff
 bin/data/*
 data/*
 tool/*
+bin/.*
+.metadata
+samples/.*
